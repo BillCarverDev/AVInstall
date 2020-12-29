@@ -1,0 +1,174 @@
+This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+<Procedure name="Sophos Central Thin Installer" treePres="3" id="833716012" folderId="321986380276264" treeFullPath="myProcedures - ..\.Sophos">
+<Body description="">
+<If description="">
+<Condition name="CheckVariable">
+<Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.MajorVersion#"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan"/>
+<Parameter xsi:type="StringParameter" name="Value" value="5"/>
+</Condition>
+<Then>
+<If description="Checking to ensure that the operating system is supported">
+<Condition name="CheckVariable">
+<Parameter xsi:type="StringParameter" name="VariableName" value="<Sophos-Central-Deploy>"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="BeginsWith"/>
+<Parameter xsi:type="StringParameter" name="Value" value="Yes"/>
+</Condition>
+<Then>
+<If description="Checking to ensure that the Deploy Sophos Variable is set to Yes (Auto or Manual)">
+<Condition name="CheckVariable">
+<Parameter xsi:type="StringParameter" name="VariableName" value="<Sophos-Central-Token>"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<If description="Checking to ensure that the Token Code Variable Exists">
+<Condition name="CheckVariable">
+<Parameter xsi:type="StringParameter" name="VariableName" value="<Sophos-Central-Location>"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<If description="Checking to ensure that the Location Variable Exists">
+<Condition name="CheckVariable">
+<Parameter xsi:type="StringParameter" name="VariableName" value="<Sophos-Central-Product>"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<If description="Checking to ensure that the Products Variable Exists">
+<Condition name="ServiceIsRunning">
+<Parameter xsi:type="StringParameter" name="ServiceName" value="SGVMManagementService"/>
+</Condition>
+<Then>
+<Statement description="Checking to see if the Sophos Guest VM Agent is installed already" name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="Sophos Guest VM Agent already installed"/>
+</Statement>
+</Then>
+<Else>
+<If description="">
+<Condition name="ServiceIsRunning">
+<Parameter xsi:type="StringParameter" name="ServiceName" value="Sophos MCS Agent"/>
+</Condition>
+<Then>
+<Statement description="Checking to see if the Sophos MCS Agent is installed already" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="Sophos Endpoint already installed"/>
+</Statement>
+</Then>
+<Else>
+<Statement name="WriteFile" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.AgentTempDir#\SophosSetup.exe"/>
+<Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\sophos\SophosSetup.exe"/>
+<Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False"/>
+</Statement>
+<If description="Transferring the SophosSetup.exe to the workstation">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.AgentTempDir#\SophosSetup.exe"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="NotExists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement description="Testing to ensure that the SophosSetup.exe transferred" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="SophosSetup.exe failed to transfer"/>
+</Statement>
+</Then>
+<Else>
+<Statement name="ExecuteShellCommand" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.AgentTempDir#\SophosSetup.exe --customertoken="<Sophos-Central-Token>" --mgmtserver="<Sophos-Central-Location>" --products="<Sophos-Central-Product>" --quiet"/>
+<Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System"/>
+<Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False"/>
+</Statement>
+<If description="Installing Sophos Central with the Variables">
+<Condition name="ServiceIsRunning">
+<Parameter xsi:type="StringParameter" name="ServiceName" value="Sophos MCS Agent"/>
+</Condition>
+<Then>
+<Statement description="Post Install check to see if the Sophos MCS Service is running" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="Sophos Endpoint Agent installed"/>
+</Statement>
+<Statement name="SendEmail" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="To" value="security@emergentnetworks.com"/>
+<Parameter xsi:type="StringParameter" name="Subject" value="Sophos deploy success on #vAgentConfiguration.Machine_GroupID#"/>
+<Parameter xsi:type="MultiLineStringParameter" name="Body" value="#adminDefaults.adminName# successfully installed Sophos Endpoint on #vAgentConfiguration.Machine_GroupID#."/>
+</Statement>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="SophosSetup Failed to install the Sophos MSC Agent"/>
+</Statement>
+<Statement name="SendEmail" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="To" value="security@emergentnetworks.com"/>
+<Parameter xsi:type="StringParameter" name="Subject" value="Sophos deploy failure on #vAgentConfiguration.Machine_GroupID#"/>
+<Parameter xsi:type="MultiLineStringParameter" name="Body" value="#adminDefaults.adminName# attempted to install Sophos Endpoint on #vAgentConfiguration.Machine_GroupID# but the install failed."/>
+</Statement>
+<If description="">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.AgentTempDir#\sdu\sdulog.xml"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="NotExists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement name="ExecuteScript" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ScriptID" value="1847556168"/>
+<Parameter xsi:type="StringParameter" name="ScriptName" value="Sophos Diagnostic Utility (SDU)"/>
+<Parameter xsi:type="StringParameter" name="TimeDelay" value="1"/>
+<Parameter xsi:type="EnumParameter" name="TimeUnit" value="Minutes"/>
+</Statement>
+</Then>
+</If>
+</Else>
+</If>
+<Statement name="DeleteFile" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.AgentTempDir#\SophosSetup.exe"/>
+</Statement>
+</Else>
+</If>
+</Else>
+</If>
+</Else>
+</If>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="Sophos Central Product variable missing"/>
+</Statement>
+</Else>
+</If>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="Sophos Central Location variable missing"/>
+</Statement>
+</Else>
+</If>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="Sophos Central Token variable missing"/>
+</Statement>
+</Else>
+</If>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="Sophos Central Deploy not set to 'Yes'"/>
+</Statement>
+</Else>
+</If>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+<Parameter xsi:type="StringParameter" name="Comment" value="Operating system not supported"/>
+</Statement>
+</Else>
+</If>
+<Statement description="Update the 'Sophos Info' custom field for auditing" name="ExecuteScript" continueOnFail="true">
+<Parameter xsi:type="StringParameter" name="ScriptID" value="455015521"/>
+<Parameter xsi:type="StringParameter" name="ScriptName" value="Sophos Info"/>
+<Parameter xsi:type="StringParameter" name="TimeDelay" value=""/>
+<Parameter xsi:type="EnumParameter" name="TimeUnit" value="Immediate"/>
+</Statement>
+</Body>
+</Procedure>
+</ScriptExport>

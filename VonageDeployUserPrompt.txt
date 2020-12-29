@@ -1,0 +1,73 @@
+This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+<Procedure name="2) Tactile Vonage MSI" treePres="3" id="1568582486" folderId="929950174144445" treeFullPath="Customer Scripts.@Tactile.Vonage Mobile Connect">
+<Body description="">
+<Statement description="Deploy Mobile Connect MSI VMC22.7.5.159 Use Script "Tactile Vonage MSI User Prompt" to call this script for user dialogue. -BillC" name="Uninstall by MSI GUID" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Parameter1" value="B1AE3A16-7780-493E-87B5-B5222482B9C9"/>
+<Parameter xsi:type="EnumParameter" name="Parameter2" value="/quiet /norestart"/>
+</Statement>
+<If description="">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value="c:\kworking\VMC22.7.5.159.msi"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="NotExists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement name="GetURL" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="URL" value="https://s3.us-east-2.amazonaws.com/vmc22.7.5.159/VMC22.7.5.159.msi"/>
+<Parameter xsi:type="StringParameter" name="ResponseFileName" value="c:\kworking\VMC22.7.5.159.msi"/>
+<Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True"/>
+</Statement>
+<Statement name="ExecuteShellCommand" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Command" value="taskkill /im communicator.exe /f"/>
+<Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System"/>
+<Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False"/>
+</Statement>
+<Statement name="ExecuteShellCommand" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Command" value="msiexec /i "c:\kworking\VMC22.7.5.159.msi" /quiet WRAPPED_ARGUMENTS="/ALLUSERS /NOSTART" /log "c:\kworking\VMCMSI.txt"/>
+<Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System"/>
+<Parameter xsi:type="BooleanParameter" name="Is64Bit" value="True"/>
+</Statement>
+<If description="">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value=""c:\program files (x86)\Vonage\MobileConnect\bme.dll""/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="VMC22.7.5.159 installed"/>
+</Statement>
+<Statement name="ExecuteScript" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ScriptID" value="1785240472"/>
+<Parameter xsi:type="StringParameter" name="ScriptName" value="Run Now Latest Audit"/>
+<Parameter xsi:type="StringParameter" name="TimeDelay" value=""/>
+<Parameter xsi:type="EnumParameter" name="TimeUnit" value="Immediate"/>
+</Statement>
+<Statement name="UpdateSystemInfo" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ColumnName" value="Vonage"/>
+<Parameter xsi:type="StringParameter" name="Value" value="VMC22.7.5.159 Installed"/>
+</Statement>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="VMC install failure"/>
+</Statement>
+<Statement name="UpdateSystemInfo" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ColumnName" value="Vonage"/>
+<Parameter xsi:type="StringParameter" name="Value" value="VMC Failure"/>
+</Statement>
+</Else>
+</If>
+</Then>
+<Else>
+<Statement name="ExecuteShellCommand" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Command" value="msiexec /i "c:\kworking\VMC22.7.5.159.msi" /quiet WRAPPED_ARGUMENTS="/ALLUSERS /NOSTART" /log "c:\kworking\VMCMSI.txt"/>
+<Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System"/>
+<Parameter xsi:type="BooleanParameter" name="Is64Bit" value="True"/>
+</Statement>
+</Else>
+</If>
+</Body>
+</Procedure>
+</ScriptExport>

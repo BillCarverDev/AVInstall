@@ -1,0 +1,127 @@
+This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+<Procedure name="2) FM18.0.1 Install w/Remote" treePres="3" id="1747128124" folderId="103091364914128" treeFullPath="Customer Scripts.@...ile.FileMaker">
+<Body description="Install 18.0.1 with logic for local and remote install. Can be called from 1) FM18 User Prompt. -BillC August 2019">
+<Statement description="Install FileMaker v18.0.1, uninstalls v16,v17 Uninstall v16" name="Uninstall by MSI GUID" continueOnFail="true">
+<Parameter xsi:type="StringParameter" name="Parameter1" value="13552F4B-487E-49C0-9DCB-A6A3DC74110C"/>
+<Parameter xsi:type="EnumParameter" name="Parameter2" value="/quiet /norestart"/>
+</Statement>
+<Statement description="Uninstall v17" name="Uninstall by MSI GUID" continueOnFail="true">
+<Parameter xsi:type="StringParameter" name="Parameter1" value="C1A19562-5ABD-49C8-95BC-D5BFA93E242F"/>
+<Parameter xsi:type="EnumParameter" name="Parameter2" value="/quiet /norestart"/>
+</Statement>
+<If description="Check if already installed">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value=""C:\Program Files (x86)\FileMaker\FileMaker Pro 18 Advanced\ClientUI.dll""/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="FM18 Already Installed"/>
+</Statement>
+<Statement name="UpdateSystemInfo" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ColumnName" value="...tileFM18"/>
+<Parameter xsi:type="StringParameter" name="Value" value="FM18 Already Installed"/>
+</Statement>
+</Then>
+<Else>
+<Statement description="Not Installed, Local Install attempt next" name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="FM18 Not Installed, Local Install attempt next"/>
+</Statement>
+<Statement name="ExecuteFile" continueOnFail="true">
+<Parameter xsi:type="StringParameter" name="Path" value=""\\..\setup.exe""/>
+<Parameter xsi:type="StringParameter" name="Arguments" value="/qn"/>
+<Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System"/>
+<Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True"/>
+</Statement>
+<If description="Check if local install successfull">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value=""C:\Program Files (x86)\FileMaker\FileMaker Pro 18 Advanced\ClientUI.dll""/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="FM18 Local install successful"/>
+</Statement>
+<Statement name="UpdateSystemInfo" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ColumnName" value="...tileFM18"/>
+<Parameter xsi:type="StringParameter" name="Value" value="FM18 Local install successful"/>
+</Statement>
+</Then>
+<Else>
+<Statement description="Not installed via local, remote install attempt next" name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="FM18 Not installed, remote install attempt next"/>
+</Statement>
+<If description="">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value="c:\...\FM18.0.1\FileMaker Pro 18 Advanced 32 bit\setup.exe"/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="Setup files already written, installing now"/>
+</Statement>
+<Statement name="ExecuteFile" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Path" value="c:\...\FM18.0.1\FileMaker Pro 18 Advanced 32 bit\setup.exe"/>
+<Parameter xsi:type="StringParameter" name="Arguments" value="/qn"/>
+<Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System"/>
+<Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True"/>
+</Statement>
+</Then>
+<Else>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="FM18 Writing file from kserver"/>
+</Statement>
+<Statement name="WriteFile" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Path" value="c:\...\FM18.0.1.zip"/>
+<Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\C..\...tile ...dical\FileMaker Pro 18 Advanced 32 bit.zip"/>
+<Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False"/>
+</Statement>
+<Statement name="Unzip file" continueOnFail="true">
+<Parameter xsi:type="StringParameter" name="Parameter1" value="c:\...\FM18.0.1.zip"/>
+<Parameter xsi:type="StringParameter" name="Parameter2" value="c:\...\FM18.0.1"/>
+<Parameter xsi:type="StringParameter" name="Parameter3" value="True"/>
+</Statement>
+<Statement name="ExecuteFile" continueOnFail="true">
+<Parameter xsi:type="StringParameter" name="Path" value="c:\...\FM18.0.1\FileMaker Pro 18 Advanced 32 bit\setup.exe"/>
+<Parameter xsi:type="StringParameter" name="Arguments" value="/qn"/>
+<Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System"/>
+<Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True"/>
+</Statement>
+</Else>
+</If>
+<If description="">
+<Condition name="TestFile">
+<Parameter xsi:type="StringParameter" name="Path" value=""C:\Program Files (x86)\FileMaker\FileMaker Pro 18 Advanced\ClientUI.dll""/>
+<Parameter xsi:type="EnumParameter" name="Condition" value="Exists"/>
+<Parameter xsi:type="StringParameter" name="Value" value=""/>
+</Condition>
+<Then>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="FM18 Remote Install Successful"/>
+</Statement>
+<Statement name="UpdateSystemInfo" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ColumnName" value="...tileFM18"/>
+<Parameter xsi:type="StringParameter" name="Value" value="FM18 Remote Install Successful"/>
+</Statement>
+</Then>
+<Else>
+<Statement name="UpdateSystemInfo" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="ColumnName" value="...tileFM18"/>
+<Parameter xsi:type="StringParameter" name="Value" value="FM18 Failed"/>
+</Statement>
+<Statement name="WriteScriptLogEntry" continueOnFail="false">
+<Parameter xsi:type="StringParameter" name="Comment" value="Setup files already written, installing now"/>
+</Statement>
+</Else>
+</If>
+</Else>
+</If>
+</Else>
+</If>
+</Body>
+</Procedure>
+</ScriptExport>
